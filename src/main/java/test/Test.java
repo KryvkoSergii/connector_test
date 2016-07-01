@@ -1,8 +1,8 @@
 package test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import com.sun.org.apache.xpath.internal.SourceTree;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -35,19 +35,41 @@ public class Test {
     public void execute() {
         try {
             Socket s = new Socket("localhost", 42027);
-            OutputStream os = s.getOutputStream();;
-            os.write(hexStringToByteArray(messageInString));
-            os.write(-1);
-            os.flush();
 
-            int b=0;
-            InputStream is = s.getInputStream();
-            StringBuilder sb = new StringBuilder();
-            while (b != -1) {
-                b = is.read();
-                sb.append(String.format("%02x", b & 0xFF));
-            }
-            System.out.println("Response message: "+sb.toString());
+            OutputStream os = s.getOutputStream();
+            os.write(hexStringToByteArray(messageInString));
+            os.flush();
+            s.close();
+//            BufferedReader in = null;
+//            PrintWriter out= null;
+//            in  = new BufferedReader(new InputStreamReader(s.getInputStream()));
+//            out = new PrintWriter(s.getOutputStream(),true);
+//            StringBuilder sb  = new StringBuilder();
+//            for (byte b : hexStringToByteArray(messageInString)){
+//                sb.append((char) b);
+//            }
+//            String response = sb.toString();
+//            out.print(response);
+//            out.flush();
+////            out.close();
+//            System.out.println(s.isClosed());
+//            String inputMessage;
+//            sb.delete(0,sb.length());
+//            System.out.println("sdfjdg");
+//            while ((inputMessage = in.readLine()) != null) {
+//                for (byte b:inputMessage.getBytes()) sb.append(String.format("%02x", b & 0xFF));
+//                String request = sb.toString();
+//                System.out.printf("Received message: %s"+'\n',request);
+//            }
+
+//            int b=0;
+//            InputStream is = s.getInputStream();
+//            StringBuilder sb = new StringBuilder();
+//            while (b != -1) {
+//                b = is.read();
+//                sb.append(String.format("%02x", b & 0xFF));
+//            }
+//            System.out.println("Response message: "+sb.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
