@@ -11,7 +11,7 @@ public class ScenarioPairContainer<T> {
     //Constructors
     public ScenarioPairContainer(byte method, T command) {
         this.method = method;
-
+        this.command = command;
     }
 
 

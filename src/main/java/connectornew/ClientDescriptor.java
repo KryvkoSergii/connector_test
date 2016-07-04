@@ -24,6 +24,33 @@ public class ClientDescriptor {
     Map<String, Object> scenarioContainer;
     private String[] clientState;
 
+
+    //Getters and setters
+    public Map<String, String> getVariableContainer() {
+        return variableContainer;
+    }
+
+    public void setVariableContainer(Map<String, String> variableContainer) {
+        this.variableContainer = variableContainer;
+    }
+
+    public Map<String, Object> getScenarioContainer() {
+        return scenarioContainer;
+    }
+
+    public void setScenarioContainer(Map<String, Object> scenarioContainer) {
+        this.scenarioContainer = scenarioContainer;
+    }
+
+    public String[] getClientState() {
+        return clientState;
+    }
+
+    public void setClientState(String[] clientState) {
+        this.clientState = clientState;
+    }
+
+
     //Methods
     //Static methods
     public static Map<String, Object> parseScenarioContainer(String scenarioFilePath) throws ParserConfigurationException,
@@ -60,37 +87,11 @@ public class ClientDescriptor {
             Node n = list.item(i);
             if (n.getNodeType() == Node.ELEMENT_NODE) {
                 b = (byte) (n.getNodeName().equals("GET") ? 0 : 1);
-                tmp.add(new ScenarioPairContainer(b, n.getChildNodes().item(0).getNodeValue()));
+//                System.out.println(n.getChildNodes().item(0).getNodeValue());
+                tmp.add(new ScenarioPairContainer(b, (String) n.getChildNodes().item(0).getNodeValue()));
             }
         }
         return tmp;
-    }
-
-
-
-    //Getters and setters
-    public Map<String, String> getVariableContainer() {
-        return variableContainer;
-    }
-
-    public void setVariableContainer(Map<String, String> variableContainer) {
-        this.variableContainer = variableContainer;
-    }
-
-    public Map<String, Object> getScenarioContainer() {
-        return scenarioContainer;
-    }
-
-    public void setScenarioContainer(Map<String, Object> scenarioContainer) {
-        this.scenarioContainer = scenarioContainer;
-    }
-
-    public String[] getClientState() {
-        return clientState;
-    }
-
-    public void setClientState(String[] clientState) {
-        this.clientState = clientState;
     }
 
     /**
@@ -127,5 +128,4 @@ public class ClientDescriptor {
         }
         return data;
     }
-
 }
