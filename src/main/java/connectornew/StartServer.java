@@ -11,6 +11,7 @@ import java.util.Map;
  * Created by srg on 04.07.16.
  */
 public class StartServer {
+    private Map<String, Object> scenario;
 
     public static void main(String[] args) {
 //        System.out.println("Init server...");
@@ -22,9 +23,11 @@ public class StartServer {
         ss.loadScenarioFile();
     }
 
-    private void loadScenarioFile(){
+    private void loadScenarioFile() {
         try {
-            Map<String, Object> c = ClientDescriptor.parseScenarioContainer("/home/srg/Downloads/scenarios_short1.xml");
+            Map<String, Object> tmp = ClientDescriptor.parseScenarioContainer("/home/srg/Downloads/scenarios_short1.xml");
+            tmp = ClientDescriptor.preCompile(tmp);
+            this.scenario = tmp;
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (IOException e) {

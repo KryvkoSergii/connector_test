@@ -3,15 +3,15 @@ package connectornew;
 /**
  * Created by srg on 04.07.16.
  */
-public class ScenarioPairContainer {
+public class ScenarioPairContainer<T> {
     private byte method;
-    private String command;
+    private T command;
 
 
     //Constructors
-    public ScenarioPairContainer(byte method, String command) {
+    public ScenarioPairContainer(byte method, T command) {
         this.method = method;
-        this.command = command;
+
     }
 
 
@@ -24,11 +24,11 @@ public class ScenarioPairContainer {
         this.method = method;
     }
 
-    public String getCommand() {
+    public T getCommand() {
         return command;
     }
 
-    public void setCommand(String command) {
+    public void setCommand(T command) {
         this.command = command;
     }
 }
