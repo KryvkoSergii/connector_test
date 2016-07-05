@@ -87,18 +87,7 @@ public class ExecutorThread {
     }
 
     private void processVariables(String command, Map<String, String> variableContainer) {
-        if (command.contains("#")) {
-            StringTokenizer st = new StringTokenizer(command,":");
-            String
-            while (st.hasMoreTokens()){
 
-            }
-            st.nextToken().contains("#")
-
-
-            //
-            int begin command.indexOf("#{");
-        }
     }
 
 }

@@ -3,24 +3,24 @@ package connectornew;
 /**
  * Created by srg on 05.07.16.
  */
-public class Variables {
+public class Variables implements Comparable {
     private String name;
-    private byte positionInArray;
+    private int positionInArray;
     private byte type;
     private int beginPosition;
-    private int endPosition;
+    private int length;
 
 
     //Constructors
-    public Variables() {
-    }
+//    public Variables() {
+//    }
 
-    public Variables(String name, byte positionInArray, byte type, int beginPosition, int endPosition) {
+    public Variables(String name, int positionInArray, byte type, int beginPosition, int length) {
         this.name = name;
         this.positionInArray = positionInArray;
         this.type = type;
         this.beginPosition = beginPosition;
-        this.endPosition = endPosition;
+        this.length = length;
     }
 
     //Getters and setters
@@ -48,19 +48,25 @@ public class Variables {
         this.beginPosition = beginPosition;
     }
 
-    public int getEndPosition() {
-        return endPosition;
+    public int getLength() {
+        return length;
     }
 
-    public void setEndPosition(int endPosition) {
-        this.endPosition = endPosition;
+    public void setLength(int length) {
+        this.length = length;
     }
 
-    public byte getPositionInArray() {
+    public int getPositionInArray() {
         return positionInArray;
     }
 
-    public void setPositionInArray(byte positionInArray) {
+    public void setPositionInArray(int positionInArray) {
         this.positionInArray = positionInArray;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        Variables v = (Variables) o;
+        return Integer.valueOf(positionInArray).compareTo(v.getPositionInArray());
     }
 }

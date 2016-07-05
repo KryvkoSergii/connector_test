@@ -1,5 +1,6 @@
 package connectornew;
 
+import connectornew.Variables;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -10,10 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -22,25 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientDescriptor {
     private Map<String, String> variableContainer;
     private String[] clientState = new String[3];
-
-
-    //Getters and setters
-    public Map<String, String> getVariableContainer() {
-        return variableContainer;
-    }
-
-    public void setVariableContainer(Map<String, String> variableContainer) {
-        this.variableContainer = variableContainer;
-    }
-
-    public String[] getClientState() {
-        return clientState;
-    }
-
-    public void setClientState(String[] clientState) {
-        this.clientState = clientState;
-    }
-
 
     //Methods
     //Static methods
@@ -101,6 +80,8 @@ public class ClientDescriptor {
                     if (!(spc.getCommand() instanceof byte[]) &&
                             !(((String) spc.getCommand()).contains("@") || ((String) spc.getCommand()).contains("#") || ((String) spc.getCommand()).contains("$"))) {
                         spc.setCommand(hexStringToByteArray(spc.getCommand().toString()));
+                    } else{
+                        parseAndCompileVariables(spc);
                     }
                 }
             } else try {
@@ -121,6 +102,57 @@ public class ClientDescriptor {
         return data;
     }
 
+    //Getters and setters
+    public Map<String, String> getVariableContainer() {
+        return variableContainer;
+    }
+
+    public void setVariableContainer(Map<String, String> variableContainer) {
+        this.variableContainer = variableContainer;
+    }
+
+    public String[] getClientState() {
+        return clientState;
+    }
+
+    public void setClientState(String[] clientState) {
+        this.clientState = clientState;
+    }
+
+    private static ScenarioPairContainer parseAndCompileVariables(ScenarioPairContainer scp) {
+        StringTokenizer st = new StringTokenizer((String) scp.getCommand(), ":");
+        String token;
+        int begin, length;
+        //позиция
+        int positionInArray = 0;
+        while (st.hasMoreTokens()) {
+            token = st.nextToken();
+            if (token.contains("#")) {
+                String name = token.substring(1, token.indexOf("("));
+                begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
+                length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
+                scp.getVariables().add(new Variables(name, positionInArray, (byte) 1, begin, length));
+                scp.getInBytes().add(new byte[0]);
+            } else if(token.contains("$")){
+                String name = token.substring(1, token.indexOf("("));
+                begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
+                length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
+                scp.getVariables().add(new Variables(name, positionInArray, (byte) 2, begin, length));
+                scp.getInBytes().add(new byte[0]);
+            } else if (token.contains("@")){
+                String name = token.substring(1, token.indexOf("("));
+                begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
+                length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
+                scp.getVariables().add(new Variables(name, positionInArray, (byte) 3, begin, length));
+                scp.getInBytes().add(new byte[0]);
+            }
+            else {
+                scp.getInBytes().add(hexStringToByteArray(token));
+            }
+            positionInArray++;
+        }
+        return scp;
+    }
 
 
 }

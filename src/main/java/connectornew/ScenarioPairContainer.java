@@ -1,12 +1,16 @@
 package connectornew;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by srg on 04.07.16.
  */
 public class ScenarioPairContainer<T> {
     private byte method;
     private T command;
-    private Variables[] variables;
+    private List<Variables> variables = new ArrayList<>();
+    private List<byte[]> inBytes = new ArrayList<>();
 
 
     //Constructors
@@ -33,14 +37,21 @@ public class ScenarioPairContainer<T> {
         this.command = command;
     }
 
-    public Variables[] getVariables() {
+    public List<Variables> getVariables() {
         return variables;
     }
 
-    public void setVariables(Variables[] variables) {
+    public void setVariables(List<Variables> variables) {
         this.variables = variables;
     }
 
+    public List<byte[]> getInBytes() {
+        return inBytes;
+    }
+
+    public void setInBytes(List<byte[]> inBytes) {
+        this.inBytes = inBytes;
+    }
 
     //Methods
     @Override
