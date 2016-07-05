@@ -6,6 +6,7 @@ package connectornew;
 public class ScenarioPairContainer<T> {
     private byte method;
     private T command;
+    private Variables[] variables;
 
 
     //Constructors
@@ -15,7 +16,7 @@ public class ScenarioPairContainer<T> {
     }
 
 
-    //Methods
+    //Getters and Setters
     public byte getMethod() {
         return method;
     }
@@ -30,5 +31,24 @@ public class ScenarioPairContainer<T> {
 
     public void setCommand(T command) {
         this.command = command;
+    }
+
+    public Variables[] getVariables() {
+        return variables;
+    }
+
+    public void setVariables(Variables[] variables) {
+        this.variables = variables;
+    }
+
+
+    //Methods
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ScenarioPairContainer{");
+        sb.append("method=").append(method);
+        sb.append(", command=").append(command);
+        sb.append('}');
+        return sb.toString();
     }
 }

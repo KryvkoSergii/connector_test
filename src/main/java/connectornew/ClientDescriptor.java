@@ -20,9 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by srg on 04.07.16.
  */
 public class ClientDescriptor {
-    Map<String, String> variableContainer;
-    Map<String, Object> scenarioContainer;
-    private String[] clientState;
+    private Map<String, String> variableContainer;
+    private String[] clientState = new String[3];
 
 
     //Getters and setters
@@ -32,14 +31,6 @@ public class ClientDescriptor {
 
     public void setVariableContainer(Map<String, String> variableContainer) {
         this.variableContainer = variableContainer;
-    }
-
-    public Map<String, Object> getScenarioContainer() {
-        return scenarioContainer;
-    }
-
-    public void setScenarioContainer(Map<String, Object> scenarioContainer) {
-        this.scenarioContainer = scenarioContainer;
     }
 
     public String[] getClientState() {
@@ -107,7 +98,8 @@ public class ClientDescriptor {
                 preCompile((Map) m.getValue());
             } else if (m.getValue() instanceof List) {
                 for (ScenarioPairContainer spc : (List<ScenarioPairContainer>) m.getValue()) {
-                    if (!(spc.getCommand() instanceof byte[])) {
+                    if (!(spc.getCommand() instanceof byte[]) &&
+                            !(((String) spc.getCommand()).contains("@") || ((String) spc.getCommand()).contains("#") || ((String) spc.getCommand()).contains("$"))) {
                         spc.setCommand(hexStringToByteArray(spc.getCommand().toString()));
                     }
                 }
@@ -128,4 +120,7 @@ public class ClientDescriptor {
         }
         return data;
     }
+
+
+
 }

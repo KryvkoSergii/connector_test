@@ -27,8 +27,6 @@ public class Connector {
                 int b = 0;
                 StringBuilder sb = new StringBuilder();
 
-
-
                 long messageLength = 0;
                 while (sb.length() < 8) {
                     b = stream.read();
