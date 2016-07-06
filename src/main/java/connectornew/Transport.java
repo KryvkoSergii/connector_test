@@ -40,13 +40,13 @@ public class Transport {
             messageType = convertByteArraySize4ToLong(messageTypeInByte);
             logger.log(Level.INFO, String.format("message type %s", messageType));
             //формирование сообщения
-            byte[] resultMessage = new byte[messageLengthInByte.length + messageTypeInByte.length + (int) messageLength];
+            byte[] resultMessage = new byte[(int) messageLength];
             System.arraycopy(messageLengthInByte, 0, resultMessage, 0, messageLengthInByte.length);
             System.arraycopy(messageTypeInByte, 0, resultMessage, messageLengthInByte.length, messageTypeInByte.length);
             //сдвиг, учитывающие начальные сообщения
             int offset = messageLengthInByte.length + messageTypeInByte.length;
             counter = 0;
-            while (counter < messageLength) {
+            while (counter < messageLength-offset) {
                 b = fromClient.read();
                 resultMessage[counter + offset] = (byte) b;
                 counter++;

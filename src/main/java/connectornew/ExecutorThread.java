@@ -12,9 +12,7 @@ import java.util.logging.Logger;
  * Created by srg on 05.07.16.
  */
 public class ExecutorThread {
-    //    private Socket clientSocket;
     private boolean isBusy;
-    //    private ClientDescriptor clientDescriptor;
     private Logger logger = Logger.getLogger(ExecutorThread.class.getClass().getName());
 
     public boolean isBusy() {
@@ -33,9 +31,8 @@ public class ExecutorThread {
         switch (spc.getMethod()) {
             //равен методу GET
             case 0: {
-                byte[] inputMessage = null;
+                byte[] inputMessage = Transport.read(clientSocket);
                 if (spc.getCommand() instanceof String) {
-                    inputMessage = Transport.read(clientSocket);
                     //извлекаются переменные из "компилированного" сценария
                     for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
                         switch (varDesc.getType()) {
@@ -52,8 +49,8 @@ public class ExecutorThread {
                         }
                     }
                 }
-
-                logger.log(Level.INFO,String.format("Is received message equals to processed message: %s",assemblyMessageInByte(spc).equals(inputMessage)));
+                byte[] resultMessage = assemblyMessageInByte(spc, clientDescriptor);
+                logger.log(Level.INFO, String.format("Is received message equals to processed message: %s", Arrays.equals(inputMessage,resultMessage)));
                 break;
             }
             //равен методу PUT
@@ -78,9 +75,9 @@ public class ExecutorThread {
                             break;
                     }
                 }
-                byte[] resultMessage = assemblyMessageInByte(spc);
-                logger.log(Level.INFO,String.format("Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
-                Transport.write(clientSocket,resultMessage);
+                byte[] resultMessage = assemblyMessageInByte(spc, clientDescriptor);
+                logger.log(Level.INFO, String.format("Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
+                Transport.write(clientSocket, resultMessage);
                 break;
             }
             default: {
@@ -134,18 +131,44 @@ public class ExecutorThread {
         return spc;
     }
 
-    private byte[] assemblyMessageInByte(ScenarioPairContainer spc){
+    private byte[] assemblyMessageInByte(ScenarioPairContainer spc, ClientDescriptor clientDescriptor) {
         //определение длины и сборка полученненного сообщения
         int messageLength = 0;
-        for(Object arr : spc.getInBytes()){
-            messageLength += ((byte[]) arr).length;
+        int iterator = 0;
+        for (Object arr : spc.getInBytes()) {
+            byte[] array = ((byte[]) arr);
+            //получение значения переменной из ClientDescriptor
+            if (array.length == 0) {
+                a:
+                for (VariablesDescriptor vd : (List<VariablesDescriptor>) spc.getVariables()) {
+                    if (vd.getPositionInArray() == iterator)
+                        messageLength += vd.getLength();
+                    break a;
+                }
+            } else {
+                messageLength += ((byte[]) arr).length;
+            }
+
+            iterator++;
         }
         byte[] resultMessage = new byte[messageLength];
         int offset = 0;
-        for(Object arr : spc.getInBytes()){
+        iterator = 0;
+        for (Object arr : spc.getInBytes()) {
             byte[] array = ((byte[]) arr);
-            System.arraycopy(array,0,resultMessage,offset,array.length);
+            //получение значения переменной из ClientDescriptor
+            if (array.length == 0) {
+                a:
+                for (VariablesDescriptor vd : (List<VariablesDescriptor>) spc.getVariables()) {
+                    if (vd.getPositionInArray() == iterator)
+                        array = clientDescriptor.getVariableContainer().get(vd.getName());
+                    break a;
+                }
+            }
+            //сборка сообщения
+            System.arraycopy(array, 0, resultMessage, offset, array.length);
             offset += array.length;
+            iterator++;
         }
         return resultMessage;
     }
