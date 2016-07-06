@@ -22,5 +22,16 @@ public class test1 {
                 System.out.println("end = " + end);
             }
         }
+        byte[] d = {0, 0, 0, 3};
+        System.out.println(convertByteArraySize4ToLong(d));
+
+    }
+
+    private static long convertByteArraySize4ToLong(byte[] variable) {
+        long value = 0;
+        for (int i = 0; i < variable.length; i++) {
+            value = (value << 4) + (variable[i] & 0xff);
+        }
+        return value;
     }
 }

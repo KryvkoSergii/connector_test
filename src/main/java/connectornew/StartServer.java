@@ -37,14 +37,17 @@ public class StartServer {
     //methods
     public static void main(String[] args) {
         StartServer ss = new StartServer();
-        ss.loadScenarioFile("/home/srg/Downloads/scenarios_short1.xml");
+        // загрузка сценария
+        ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
+        //установка количества исполнительных потоков
         ss.createExecutorsPool(1);
         ss.getClients().put("client",new ClientDescriptor());
-//        ss.startListening();
-        ss.test();
+        ss.startListening();
+//        ss.test();
     }
 
     private void test(){
+        //
         ExecutorThread et = threadsPool.get(0);
         et.process(null,scenario,clients);
         et.process(null,scenario,clients);

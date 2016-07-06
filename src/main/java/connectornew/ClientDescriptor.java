@@ -1,6 +1,5 @@
 package connectornew;
 
-import connectornew.Variables;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -18,11 +17,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by srg on 04.07.16.
  */
 public class ClientDescriptor {
-    private Map<String, String> variableContainer;
+    private Map<String, byte[]> variableContainer = new ConcurrentHashMap<>();
     private String[] clientState = new String[3];
 
     //Methods
     //Static methods
+
+    /**
+     * Производит процесс
+     * @param scenarioFilePath
+     * @return
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     */
     public static Map<String, Object> parseScenarioContainer(String scenarioFilePath) throws ParserConfigurationException,
             IOException, SAXException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -32,6 +40,12 @@ public class ClientDescriptor {
         return result;
     }
 
+    /**
+     * производит конвертацию
+     * @param node
+     * @param level
+     * @return
+     */
     private static Map<String, Object> getSubNode(Node node, int level) {
         Map<String, Object> tmp = new ConcurrentHashMap<String, Object>();
         NodeList list = node.getChildNodes();
@@ -65,7 +79,7 @@ public class ClientDescriptor {
     }
 
     /**
-     * просматривает сценарий на наличие неизменяемых значений GET/PUT, пересоздает Map<String, Object> с представлением значений
+     * просматривает сценарий на наличие неизменяемых значений GET/PUT (отсуствие переменных), пересоздает Map<String, Object> с представлением значений
      * GET/PUT в виде массива байт.
      *
      * @return
@@ -74,6 +88,7 @@ public class ClientDescriptor {
         Set<Map.Entry<String, Object>> root = rawScenario.entrySet();
         for (Map.Entry<String, Object> m : root) {
             if (m.getValue() instanceof Map) {
+                // есть вложенненность представлення в Map. рекурсивный вызов
                 preCompile((Map) m.getValue());
             } else if (m.getValue() instanceof List) {
                 for (ScenarioPairContainer spc : (List<ScenarioPairContainer>) m.getValue()) {
@@ -103,11 +118,11 @@ public class ClientDescriptor {
     }
 
     //Getters and setters
-    public Map<String, String> getVariableContainer() {
+    public Map<String, byte[]> getVariableContainer() {
         return variableContainer;
     }
 
-    public void setVariableContainer(Map<String, String> variableContainer) {
+    public void setVariableContainer(Map<String, byte[]> variableContainer) {
         this.variableContainer = variableContainer;
     }
 
@@ -131,19 +146,19 @@ public class ClientDescriptor {
                 String name = token.substring(1, token.indexOf("("));
                 begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
                 length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
-                scp.getVariables().add(new Variables(name, positionInArray, (byte) 1, begin, length));
+                scp.getVariables().add(new VariablesDescriptor(name, positionInArray, (byte) 1, begin, length));
                 scp.getInBytes().add(new byte[0]);
             } else if(token.contains("$")){
                 String name = token.substring(1, token.indexOf("("));
                 begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
                 length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
-                scp.getVariables().add(new Variables(name, positionInArray, (byte) 2, begin, length));
+                scp.getVariables().add(new VariablesDescriptor(name, positionInArray, (byte) 2, begin, length));
                 scp.getInBytes().add(new byte[0]);
             } else if (token.contains("@")){
                 String name = token.substring(1, token.indexOf("("));
                 begin = Integer.valueOf(token.substring(token.indexOf("(") + 1, token.indexOf(";")));
                 length = Integer.valueOf(token.substring(token.indexOf(";") + 1, token.indexOf(")")));
-                scp.getVariables().add(new Variables(name, positionInArray, (byte) 3, begin, length));
+                scp.getVariables().add(new VariablesDescriptor(name, positionInArray, (byte) 3, begin, length));
                 scp.getInBytes().add(new byte[0]);
             }
             else {

@@ -9,7 +9,7 @@ import java.util.List;
 public class ScenarioPairContainer<T> {
     private byte method;
     private T command;
-    private List<Variables> variables = new ArrayList<>();
+    private List<VariablesDescriptor> variables = new ArrayList<>();
     private List<byte[]> inBytes = new ArrayList<>();
 
 
@@ -37,11 +37,11 @@ public class ScenarioPairContainer<T> {
         this.command = command;
     }
 
-    public List<Variables> getVariables() {
+    public List<VariablesDescriptor> getVariables() {
         return variables;
     }
 
-    public void setVariables(List<Variables> variables) {
+    public void setVariables(List<VariablesDescriptor> variables) {
         this.variables = variables;
     }
 

@@ -1,9 +1,10 @@
 package connectornew;
 
 /**
+ * Описание переменной, не содержит значения.
  * Created by srg on 05.07.16.
  */
-public class Variables implements Comparable {
+public class VariablesDescriptor implements Comparable {
     private String name;
     private int positionInArray;
     private byte type;
@@ -15,7 +16,7 @@ public class Variables implements Comparable {
 //    public Variables() {
 //    }
 
-    public Variables(String name, int positionInArray, byte type, int beginPosition, int length) {
+    public VariablesDescriptor(String name, int positionInArray, byte type, int beginPosition, int length) {
         this.name = name;
         this.positionInArray = positionInArray;
         this.type = type;
@@ -66,7 +67,7 @@ public class Variables implements Comparable {
 
     @Override
     public int compareTo(Object o) {
-        Variables v = (Variables) o;
+        VariablesDescriptor v = (VariablesDescriptor) o;
         return Integer.valueOf(positionInArray).compareTo(v.getPositionInArray());
     }
 }
