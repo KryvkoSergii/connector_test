@@ -55,23 +55,22 @@ public class StartServer {
 
     private void startListening() {
         logger.log(Level.INFO, String.format("Init server acceptor..."));
-        try {
-            ServerSocket ss = new ServerSocket(42027);
-            while (!isStopped) {
-                System.out.println("Waiting...");
-                Socket s = ss.accept();
+//        try {
+//            ServerSocket ss = new ServerSocket(42027);
+//            while (!isStopped) {
+//                System.out.println("Waiting...");
+//                Socket s = ss.accept();
                 for (ExecutorThread e : threadsPool) {
                     if (!e.isBusy()) {
                         e.setBusy(true);
-                        e.process(s,scenario,clients);
-                        continue;
+                        e.process(null,scenario,clients);
+                        break;
                     }
                 }
-
-            }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, e.getMessage());
-        }
+//            }
+//        } catch (IOException e) {
+//            logger.log(Level.SEVERE, e.getMessage());
+//        }
     }
 
     private void createExecutorsPool(int initSize) {

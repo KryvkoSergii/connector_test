@@ -13,8 +13,7 @@ import java.util.logging.Logger;
 public class Transport {
     private static Logger logger = Logger.getLogger(Transport.class.getClass().getName());
 
-    public static byte[] read(Socket s) {
-        try {
+    public static byte[] read(Socket s) throws IOException {
             InputStream fromClient = s.getInputStream();
 
             long messageLength, messageType;
@@ -46,27 +45,18 @@ public class Transport {
             //сдвиг, учитывающие начальные сообщения
             int offset = messageLengthInByte.length + messageTypeInByte.length;
             counter = 0;
-            while (counter < messageLength-offset) {
+            while (counter < messageLength - offset) {
                 b = fromClient.read();
                 resultMessage[counter + offset] = (byte) b;
                 counter++;
             }
             return resultMessage;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
-    public static void write(Socket s, byte[] message) {
-        try {
-            OutputStream toClient = s.getOutputStream();
-            toClient.write(message);
-            toClient.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+    public static void write(Socket s, byte[] message) throws IOException {
+        OutputStream toClient = s.getOutputStream();
+        toClient.write(message);
+        toClient.flush();
     }
 
     private static long convertByteArraySize4ToLong(byte[] variable) {

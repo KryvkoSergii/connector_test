@@ -2,6 +2,8 @@ package connectornew;
 
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -23,16 +25,43 @@ public class ExecutorThread {
         isBusy = busy;
     }
 
-    public void process(Socket clientSocket, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
-        logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
+    public void process(Socket cs, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
+        logger.log(Level.INFO, String.format("Thread started " + '\n'));
+
         while (isBusy()) {
             ClientDescriptor clientDescriptor = clients.get("client");
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
-
+            int port = -1;
+            if (spc == null) {
+                logger.log(Level.INFO, "Scenario executed");
+                break;
+            }
+            logger.log(Level.INFO, String.format("State: %s , command type: %s", Arrays.toString(clientDescriptor.getClientState()), spc.getMethod()));
             switch (spc.getMethod()) {
                 //равен методу GET
                 case 0: {
-                    byte[] inputMessage = Transport.read(clientSocket);
+                    ServerSocket ss = null;
+                    Socket clientSocket = null;
+                    try {
+                        ss = new ServerSocket(42027);
+                        System.out.println("Waiting...");
+                        clientSocket = ss.accept();
+                        port = clientSocket.getPort();
+                        logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
+                    }
+
+                    logger.log(Level.INFO, String.format("GET: Executing command type" + '\n'));
+                    byte[] inputMessage;
+                    try {
+                        inputMessage = Transport.read(clientSocket);
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
+                        break;
+                    }
+
+                    logger.log(Level.INFO, String.format("GET: Input message in hex: %s" + '\n', Hex.encodeHexString(inputMessage)));
                     if (spc.getCommand() instanceof String) {
                         //извлекаются переменные из "компилированного" сценария
                         for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
@@ -44,42 +73,60 @@ public class ExecutorThread {
                                             .put(varDesc.getName(), Arrays.copyOfRange(inputMessage, varDesc.getBeginPosition(), varDesc.getBeginPosition() + varDesc.getLength()));
                                     break;
                                 }
-                                default:
-                                    logger.log(Level.WARNING, "Unknown command");
+                                default: {
+                                    logger.log(Level.WARNING, "Unknown command GET");
                                     break;
+                                }
                             }
                         }
                     }
+
                     byte[] resultMessage = assemblyMessageInByte(spc, clientDescriptor);
-                    logger.log(Level.INFO, String.format("Is received message equals to processed message: %s", Arrays.equals(inputMessage, resultMessage)));
+                    logger.log(Level.INFO, String.format("GET: Processed message in hex: %s" + '\n', Hex.encodeHexString(resultMessage)));
+                    logger.log(Level.INFO, String.format("GET: Is received message equals to processed message: %s", Arrays.equals(inputMessage, resultMessage)));
+
+                    try {
+                        clientSocket.close();
+                        ss.close();
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
+                        break;
+                    }
+
                     break;
                 }
                 //равен методу PUT
                 case 1: {
+                    logger.log(Level.INFO, String.format("PUT: Executing command type" + '\n'));
                     for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
-                        switch (varDesc.getType()) {
-                            case 2: {
-                                //вставить переменную из ClientDescriptor в
+//                            case 2: {
+//                                //вставить переменную из ClientDescriptor в
 //                                spc.getInBytes().set(varDesc.getPositionInArray(), clientDescriptor.getVariableContainer().get(varDesc.getName()));
-                                break;
-                            }
-                            case 3: {
-                                //сгенерировать переменную по имени
-                                byte[] var = null;
-                                if (varDesc.getName().equals("ICMCentralControllerTimer"))
-                                    var = ByteBuffer.allocate(varDesc.getLength()).putInt((int) System.currentTimeMillis() / 1000).array();
-                                clientDescriptor.getVariableContainer().put(varDesc.getName(), var);
-//                                spc.getInBytes().set(varDesc.getPositionInArray(), var);
-                                break;
-                            }
-                            default:
-                                logger.log(Level.WARNING, "Unknown command");
-                                break;
+//                                break;
+//                            }
+                        if (varDesc.getType() == 3) {
+                            //сгенерировать переменную по имени
+                            byte[] var = null;
+                            if (varDesc.getName().equals("ICMCentralControllerTimer"))
+                                var = ByteBuffer.allocate(varDesc.getLength()).putInt((int) System.currentTimeMillis() / 1000).array();
+                            clientDescriptor.getVariableContainer().put(varDesc.getName(), var);
                         }
                     }
-                    byte[] resultMessage = assemblyMessageInByte(spc, clientDescriptor);
-                    logger.log(Level.INFO, String.format("Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
-                    Transport.write(clientSocket, resultMessage);
+                    /*проверяет, если команда представлена в сценарии в byte[], она извлекаетя из сценария.
+                    в ином случае команда собирается изх переменных и блоков, представленый в byte[]
+                    */
+                    byte[] resultMessage;
+                    if (spc.getCommand() instanceof byte[]) resultMessage = (byte[]) spc.getCommand();
+                    else resultMessage = assemblyMessageInByte(spc, clientDescriptor);
+
+                    logger.log(Level.INFO, String.format("PUT: Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
+                    try {
+                        Socket clientSocket = new Socket("172.22.2.19",port);
+                        Transport.write(clientSocket, resultMessage);
+                    } catch (IOException e) {
+                        logger.log(Level.SEVERE, "PUT: " + e.getMessage());
+                        break;
+                    }
                     break;
                 }
                 default: {
