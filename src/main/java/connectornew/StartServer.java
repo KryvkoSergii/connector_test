@@ -23,6 +23,18 @@ public class StartServer {
     private List<ExecutorThread> threadsPool = new ArrayList<ExecutorThread>();
     private boolean isStopped = false;
 
+    //methods
+    public static void main(String[] args) {
+        StartServer ss = new StartServer();
+        // загрузка сценария
+        //        ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
+                ss.loadScenarioFile("/home/user/tmp/scenarios_short1.xml");
+        //установка количества исполнительных потоков
+        ss.createExecutorsPool(1);
+        ss.getClients().put("client", new ClientDescriptor());
+        ss.startListening();
+//        ss.test();
+    }
 
     //getter and setters
     public Map<String, ClientDescriptor> getClients() {
@@ -33,24 +45,11 @@ public class StartServer {
         this.clients = clients;
     }
 
-
-    //methods
-    public static void main(String[] args) {
-        StartServer ss = new StartServer();
-        // загрузка сценария
-        ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
-        //установка количества исполнительных потоков
-        ss.createExecutorsPool(1);
-        ss.getClients().put("client",new ClientDescriptor());
-        ss.startListening();
-//        ss.test();
-    }
-
-    private void test(){
+    private void test() {
         //
         ExecutorThread et = threadsPool.get(0);
-        et.process(null,scenario,clients);
-        et.process(null,scenario,clients);
+        et.process(null, scenario, clients);
+        et.process(null, scenario, clients);
     }
 
     private void startListening() {
@@ -60,13 +59,13 @@ public class StartServer {
 //            while (!isStopped) {
 //                System.out.println("Waiting...");
 //                Socket s = ss.accept();
-                for (ExecutorThread e : threadsPool) {
-                    if (!e.isBusy()) {
-                        e.setBusy(true);
-                        e.process(null,scenario,clients);
-                        break;
-                    }
-                }
+        for (ExecutorThread e : threadsPool) {
+            if (!e.isBusy()) {
+                e.setBusy(true);
+                e.process(null, scenario, clients);
+                break;
+            }
+        }
 //            }
 //        } catch (IOException e) {
 //            logger.log(Level.SEVERE, e.getMessage());

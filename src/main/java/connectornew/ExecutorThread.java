@@ -27,11 +27,22 @@ public class ExecutorThread {
 
     public void process(Socket cs, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
         logger.log(Level.INFO, String.format("Thread started " + '\n'));
+        int port = -1;
+        String address = null;
+        ServerSocket ss = null;
+        try {
+            ss = new ServerSocket(42027);
+            System.out.println("Waiting...");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Socket clientSocket = null;
 
         while (isBusy()) {
             ClientDescriptor clientDescriptor = clients.get("client");
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
-            int port = -1;
+
+
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
                 break;
@@ -40,13 +51,14 @@ public class ExecutorThread {
             switch (spc.getMethod()) {
                 //равен методу GET
                 case 0: {
-                    ServerSocket ss = null;
-                    Socket clientSocket = null;
+
                     try {
-                        ss = new ServerSocket(42027);
-                        System.out.println("Waiting...");
-                        clientSocket = ss.accept();
+                        if(clientSocket==null) clientSocket = ss.accept();
+                        if (!clientSocket.isConnected()) clientSocket = ss.accept();
+
+                        address = clientSocket.getInetAddress().toString();
                         port = clientSocket.getPort();
+                        logger.log(Level.INFO, String.format("GET: Defined address %s:%s",address,port ));
                         logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "GET: " + e.getMessage());
@@ -121,7 +133,8 @@ public class ExecutorThread {
 
                     logger.log(Level.INFO, String.format("PUT: Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
                     try {
-                        Socket clientSocket = new Socket("172.22.2.19",port);
+//                        logger.log(Level.INFO, String.format("PUT: Connecting to %s:%s",address,42027));
+//                        clientSocket = new Socket(address,42027);
                         Transport.write(clientSocket, resultMessage);
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "PUT: " + e.getMessage());
