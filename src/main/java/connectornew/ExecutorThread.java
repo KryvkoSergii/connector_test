@@ -26,22 +26,29 @@ public class ExecutorThread {
     }
 
     public void process(Socket cs, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
-        logger.log(Level.INFO, String.format("Thread started " + '\n'));
+        logger.log(Level.INFO, String.format("Thread started "));
         int port = -1;
         String address = null;
         ServerSocket ss = null;
+        Socket clientSocket = null;
         try {
             ss = new ServerSocket(42027);
             System.out.println("Waiting...");
+            clientSocket = ss.accept();
+            System.out.println(clientSocket.getRemoteSocketAddress());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Socket clientSocket = null;
 
         while (isBusy()) {
+            address = clientSocket.getInetAddress().toString();
+            port = clientSocket.getPort();
+            logger.log(Level.INFO, String.format("Defined address %s:%s",address,port ));
+            logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
+
             ClientDescriptor clientDescriptor = clients.get("client");
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
-
 
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
@@ -52,19 +59,7 @@ public class ExecutorThread {
                 //равен методу GET
                 case 0: {
 
-                    try {
-                        if(clientSocket==null) clientSocket = ss.accept();
-                        if (!clientSocket.isConnected()) clientSocket = ss.accept();
-
-                        address = clientSocket.getInetAddress().toString();
-                        port = clientSocket.getPort();
-                        logger.log(Level.INFO, String.format("GET: Defined address %s:%s",address,port ));
-                        logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
-                    }
-
-                    logger.log(Level.INFO, String.format("GET: Executing command type" + '\n'));
+                    logger.log(Level.INFO, String.format("GET: Executing command type"));
                     byte[] inputMessage;
                     try {
                         inputMessage = Transport.read(clientSocket);
@@ -73,7 +68,7 @@ public class ExecutorThread {
                         break;
                     }
 
-                    logger.log(Level.INFO, String.format("GET: Input message in hex: %s" + '\n', Hex.encodeHexString(inputMessage)));
+                    logger.log(Level.INFO, String.format("GET: Input message in hex: %s", Hex.encodeHexString(inputMessage)));
                     if (spc.getCommand() instanceof String) {
                         //извлекаются переменные из "компилированного" сценария
                         for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
@@ -94,22 +89,20 @@ public class ExecutorThread {
                     }
 
                     byte[] resultMessage = assemblyMessageInByte(spc, clientDescriptor);
-                    logger.log(Level.INFO, String.format("GET: Processed message in hex: %s" + '\n', Hex.encodeHexString(resultMessage)));
+                    logger.log(Level.INFO, String.format("GET: Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
                     logger.log(Level.INFO, String.format("GET: Is received message equals to processed message: %s", Arrays.equals(inputMessage, resultMessage)));
-
-                    try {
-                        clientSocket.close();
-                        ss.close();
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
-                        break;
-                    }
-
+//                    try {
+//                        clientSocket.close();
+//                        ss.close();
+//                    } catch (IOException e) {
+//                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
+//                        break;
+//                    }
                     break;
                 }
                 //равен методу PUT
                 case 1: {
-                    logger.log(Level.INFO, String.format("PUT: Executing command type" + '\n'));
+                    logger.log(Level.INFO, String.format("PUT: Executing command type"));
                     for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
 //                            case 2: {
 //                                //вставить переменную из ClientDescriptor в
@@ -133,9 +126,10 @@ public class ExecutorThread {
 
                     logger.log(Level.INFO, String.format("PUT: Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
                     try {
-//                        logger.log(Level.INFO, String.format("PUT: Connecting to %s:%s",address,42027));
-//                        clientSocket = new Socket(address,42027);
+                        logger.log(Level.INFO, String.format("PUT: Connecting: %s:%s", address.substring(1),port));
+//                        clientSocket = new Socket(address.substring(1),port);
                         Transport.write(clientSocket, resultMessage);
+                        logger.log(Level.INFO, String.format("PUT: Sent message"));
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "PUT: " + e.getMessage());
                         break;
