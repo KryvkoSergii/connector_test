@@ -25,31 +25,29 @@ public class ExecutorThread {
         isBusy = busy;
     }
 
-    public void process(Socket cs, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
+    public void process(Socket clientSocket, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
         logger.log(Level.INFO, String.format("Thread started "));
+        logger.setLevel(Level.ALL);
         int port = -1;
         String address = null;
-        ServerSocket ss = null;
-        Socket clientSocket = null;
-        try {
-            ss = new ServerSocket(42027);
-            System.out.println("Waiting...");
-            clientSocket = ss.accept();
-            System.out.println(clientSocket.getRemoteSocketAddress());
-            clientSocket.setSendBufferSize(4096);
+        long initTime;
+//        ServerSocket ss = null;
+//        Socket clientSocket = null;
+//        ss = new ServerSocket(42027);
+//        System.out.println("Waiting...");
+//        clientSocket = ss.accept();
 
-            address = clientSocket.getInetAddress().toString();
-            port = clientSocket.getPort();
-            logger.log(Level.INFO, String.format("Defined address %s:%s", address, port));
-            logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        address = clientSocket.getInetAddress().toString();
+        port = clientSocket.getPort();
+        logger.log(Level.INFO, String.format("Defined address %s:%s", address, port));
+        logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
+        initTime = System.currentTimeMillis();
         while (isBusy()) {
+            System.out.println("");
             ClientDescriptor clientDescriptor = clients.get("client");
+            long initTimeLoadCommand = System.nanoTime();
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
+            logger.log(Level.INFO,String.format("Scenario accessing time: %f ms",(double) ((System.nanoTime()-initTimeLoadCommand)*0.000001)));
 
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
@@ -60,11 +58,12 @@ public class ExecutorThread {
             switch (spc.getMethod()) {
                 //равен методу GET
                 case 0: {
-                    System.out.println("");
                     logger.log(Level.INFO, String.format("GET: Executing command type: GET"));
                     byte[] inputMessage;
                     try {
+                        long startRead = System.nanoTime();
                         inputMessage = Transport.read(clientSocket);
+                        logger.log(Level.INFO,String.format("Reading time from socket: %f ms",(double) ((System.nanoTime()-startRead)*0.000001)));
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "GET: " + e.getMessage());
                         break;
@@ -96,11 +95,11 @@ public class ExecutorThread {
                         byte[] resultMessage = (byte[]) spc.getCommand();
                         logger.log(Level.INFO, String.format("GET: Loaded message in hex from scenario: %s", Hex.encodeHexString(resultMessage)));
                         logger.log(Level.INFO, String.format("GET: Is received message equals to processed message: %s", Arrays.equals(inputMessage, resultMessage)));
+                        break;
                     }
                 }
                 //равен методу PUT
                 case 1: {
-                    System.out.println("");
                     logger.log(Level.INFO, String.format("PUT: Executing command type: PUT"));
                     for (VariablesDescriptor varDesc : (List<VariablesDescriptor>) spc.getVariables()) {
                         if (varDesc.getType() == 3) {
@@ -120,7 +119,9 @@ public class ExecutorThread {
 
                     logger.log(Level.INFO, String.format("PUT: Processed message in hex: %s", Hex.encodeHexString(resultMessage)));
                     try {
+                        long startWrite = System.nanoTime();
                         Transport.write(clientSocket, resultMessage);
+                        logger.log(Level.INFO,String.format("Writing time to socket: %f ms",(double) ((System.nanoTime()-startWrite)*0.000001)));
                         logger.log(Level.INFO, String.format("PUT: Sent message"));
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "PUT: " + e.getMessage());
@@ -134,6 +135,7 @@ public class ExecutorThread {
                 }
             }
         }
+        logger.log(Level.INFO,String.format("Executing time: %s ms",System.currentTimeMillis()-initTime));
         setBusy(false);
         try {
             clientSocket.close();

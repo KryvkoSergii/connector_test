@@ -32,7 +32,6 @@ public class Transport {
 //                System.out.print(String.format("%02x", b & 0xFF));
                 counter++;
             }
-            System.out.println("");
             messageLength = convertByteArraySize4ToLong(messageLengthInByte);
             if (messageLength <= 4329) {
                 correct = true;
