@@ -9,8 +9,8 @@ import java.util.List;
 public class ScenarioPairContainer<T> {
     private byte method;
     private T command;
-    private List<VariablesDescriptor> variables = new ArrayList<>();
-    private List<byte[]> inBytes = new ArrayList<>();
+    private List<VariablesDescriptor> variables = new ArrayList<VariablesDescriptor>();
+    private List<byte[]> inBytes = new ArrayList<byte[]>();
 
 
     //Constructors

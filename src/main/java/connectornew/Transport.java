@@ -15,13 +15,12 @@ public class Transport {
 
     public static byte[] read(Socket s, boolean shouldWaiting) throws IOException {
         InputStream fromClient = s.getInputStream();
-        System.out.println("available "+fromClient.available());
+        System.out.println("available " + fromClient.available());
 
         if (!shouldWaiting && !(fromClient.available() > 0)) {
-            logger.log(Level.INFO,"nothing to read");
+            logger.log(Level.INFO, "nothing to read");
             return null;
         }
-
 
         long messageLength = 0L;
         long messageType = 0L;
@@ -29,27 +28,25 @@ public class Transport {
         byte[] messageLengthInByte = new byte[4];
         byte[] messageTypeInByte = new byte[4];
         // определение длинны сообщения
-        boolean correct = false;
-        int counter;
-        while (!correct) {
-            counter = 0;
-            while (counter < messageLengthInByte.length) {
-                b = fromClient.read();
-                messageLengthInByte[counter] = (byte) b;
-//                System.out.print(String.format("%02x", b & 0xFF));
-                counter++;
-            }
-            messageLength = convertByteArraySize4ToLong(messageLengthInByte);
-            if (messageLength <= 4329) {
-                correct = true;
-                logger.log(Level.INFO, String.format("message lengths %s - correct", messageLength));
-            } else logger.log(Level.INFO, String.format("message lengths %s - incorrect", messageLength));
+
+        int  counter = 0;
+        while (counter < messageLengthInByte.length) {
+            b = fromClient.read();
+            messageLengthInByte[counter] = (byte) b;
+            System.out.print(String.format("%02x", b & 0xFF));
+            counter++;
         }
+        messageLength = convertByteArraySize4ToLong(messageLengthInByte);
+        //надо ли проверять размер сообщения?
+        if (messageLength <= 4329) {
+            logger.log(Level.INFO, String.format("message lengths %s - correct", messageLength));
+        } else logger.log(Level.INFO, String.format("message lengths %s - incorrect", messageLength));
         // определение типа сообщения
         counter = 0;
         while (counter < messageTypeInByte.length) {
             b = fromClient.read();
             messageTypeInByte[counter] = (byte) b;
+            System.out.print(String.format("%02x", b & 0xFF));
             counter++;
         }
         messageType = convertByteArraySize4ToLong(messageTypeInByte);
@@ -64,6 +61,7 @@ public class Transport {
         while (counter < messageLength) {
             b = fromClient.read();
             resultMessage[counter + offset] = (byte) b;
+            System.out.print(String.format("%02x", b & 0xFF));
             counter++;
         }
         s.setSoLinger(true, 0);

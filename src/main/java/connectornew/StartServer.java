@@ -87,7 +87,13 @@ public class StartServer {
             tmp = ClientDescriptor.preCompile(tmp);
             this.scenario = tmp;
             logger.log(Level.INFO,String.format("Script preparing time: %s ms",System.currentTimeMillis()-initTime));
-        } catch (ParserConfigurationException | SAXException | IOException e) {
+        } catch (ParserConfigurationException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+            e.printStackTrace();
+        } catch (SAXException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage());
             e.printStackTrace();
         }

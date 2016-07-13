@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by srg on 04.07.16.
  */
 public class ClientDescriptor {
-    private Map<String, byte[]> variableContainer = new ConcurrentHashMap<>();
+    private Map<String, byte[]> variableContainer = new ConcurrentHashMap<String, byte[]>();
     private String[] clientState = new String[3];
 
     //Methods
