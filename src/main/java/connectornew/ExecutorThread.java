@@ -14,6 +14,8 @@ import java.util.logging.Logger;
  * Created by srg on 05.07.16.
  */
 public class ExecutorThread {
+    private final byte[] HEART_BEAT_REQUEST = ClientDescriptor.hexStringToByteArray("000000040000000500000001");
+    private final byte[] HEART_BEAT_RESPONSE = ClientDescriptor.hexStringToByteArray("000000040000000600000001");
     private boolean isBusy;
     private Logger logger = Logger.getLogger(ExecutorThread.class.getClass().getName());
 
@@ -31,11 +33,6 @@ public class ExecutorThread {
         int port = -1;
         String address = null;
         long initTime;
-//        ServerSocket ss = null;
-//        Socket clientSocket = null;
-//        ss = new ServerSocket(42027);
-//        System.out.println("Waiting...");
-//        clientSocket = ss.accept();
 
         address = clientSocket.getInetAddress().toString();
         port = clientSocket.getPort();
@@ -43,11 +40,35 @@ public class ExecutorThread {
         logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
         initTime = System.currentTimeMillis();
         while (isBusy()) {
+
             System.out.println("");
             ClientDescriptor clientDescriptor = clients.get("client");
             long initTimeLoadCommand = System.nanoTime();
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
-            logger.log(Level.INFO,String.format("Scenario accessing time: %f ms",(double) ((System.nanoTime()-initTimeLoadCommand)*0.000001)));
+            logger.log(Level.INFO, String.format("Scenario accessing time: %f ms", (double) ((System.nanoTime() - initTimeLoadCommand) * 0.000001)));
+
+            //получение сообщений, в том числе и HEARD_BEAT
+            byte[] inputMessage = null;
+            try {
+                long startRead = System.nanoTime();
+                logger.log(Level.INFO, String.format("Reading message from socket ... "));
+                inputMessage = Transport.read(clientSocket, false);
+                logger.log(Level.INFO, String.format("Reading time from socket: %f ms", (double) ((System.nanoTime() - startRead) * 0.000001)));
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "GET: " + e.getMessage());
+                break;
+            }
+
+            if (inputMessage != null && Arrays.equals(inputMessage, HEART_BEAT_REQUEST)) {
+                logger.log(Level.INFO, String.format("GOT HEART_BEAT_REQUEST"));
+                try {
+                    Transport.write(clientSocket, HEART_BEAT_RESPONSE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                logger.log(Level.INFO, String.format("SENT HEART_BEAT_RESPONSE"));
+            }
+
 
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
@@ -59,15 +80,16 @@ public class ExecutorThread {
                 //равен методу GET
                 case 0: {
                     logger.log(Level.INFO, String.format("GET: Executing command type: GET"));
-                    byte[] inputMessage;
-                    try {
-                        long startRead = System.nanoTime();
-                        inputMessage = Transport.read(clientSocket);
-                        logger.log(Level.INFO,String.format("Reading time from socket: %f ms",(double) ((System.nanoTime()-startRead)*0.000001)));
-                    } catch (IOException e) {
-                        logger.log(Level.SEVERE, "GET: " + e.getMessage());
-                        break;
-                    }
+
+                    if (inputMessage == null)
+                        try {
+                            long startRead = System.nanoTime();
+                            inputMessage = Transport.read(clientSocket, true);
+                            logger.log(Level.INFO, String.format("Reading time from socket: %f ms", (double) ((System.nanoTime() - startRead) * 0.000001)));
+                        } catch (IOException e) {
+                            logger.log(Level.SEVERE, "GET: " + e.getMessage());
+                            break;
+                        }
 
                     logger.log(Level.INFO, String.format("GET: Input message in hex: %s", Hex.encodeHexString(inputMessage)));
                     if (spc.getCommand() instanceof String) {
@@ -121,7 +143,7 @@ public class ExecutorThread {
                     try {
                         long startWrite = System.nanoTime();
                         Transport.write(clientSocket, resultMessage);
-                        logger.log(Level.INFO,String.format("Writing time to socket: %f ms",(double) ((System.nanoTime()-startWrite)*0.000001)));
+                        logger.log(Level.INFO, String.format("Writing time to socket: %f ms", (double) ((System.nanoTime() - startWrite) * 0.000001)));
                         logger.log(Level.INFO, String.format("PUT: Sent message"));
                     } catch (IOException e) {
                         logger.log(Level.SEVERE, "PUT: " + e.getMessage());
@@ -135,7 +157,7 @@ public class ExecutorThread {
                 }
             }
         }
-        logger.log(Level.INFO,String.format("Executing time: %s ms",System.currentTimeMillis()-initTime));
+        logger.log(Level.INFO, String.format("Executing time: %s ms", System.currentTimeMillis() - initTime));
         setBusy(false);
         try {
             clientSocket.close();

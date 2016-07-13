@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,8 +13,15 @@ import java.util.logging.Logger;
 public class Transport {
     private static Logger logger = Logger.getLogger(Transport.class.getClass().getName());
 
-    public static byte[] read(Socket s) throws IOException {
+    public static byte[] read(Socket s, boolean shouldWaiting) throws IOException {
         InputStream fromClient = s.getInputStream();
+        System.out.println("available "+fromClient.available());
+
+        if (!shouldWaiting && !(fromClient.available() > 0)) {
+            logger.log(Level.INFO,"nothing to read");
+            return null;
+        }
+
         long messageLength = 0L;
         long messageType = 0L;
         int b;
@@ -49,7 +55,7 @@ public class Transport {
         logger.log(Level.INFO, String.format("message type %s", messageType));
         //формирование сообщения
         int offset = messageLengthInByte.length + messageTypeInByte.length;
-        byte[] resultMessage = new byte[(int) messageLength+offset];
+        byte[] resultMessage = new byte[(int) messageLength + offset];
         System.arraycopy(messageLengthInByte, 0, resultMessage, 0, messageLengthInByte.length);
         System.arraycopy(messageTypeInByte, 0, resultMessage, messageLengthInByte.length, messageTypeInByte.length);
         //сдвиг, учитывающие начальные сообщения
