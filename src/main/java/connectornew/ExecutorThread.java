@@ -130,6 +130,7 @@ public class ExecutorThread {
                             if (varDesc.getName().equals("ICMCentralControllerTimer"))
                                 var = ByteBuffer.allocate(varDesc.getLength()).putInt((int) System.currentTimeMillis() / 1000).array();
                             clientDescriptor.getVariableContainer().put(varDesc.getName(), var);
+                            logger.log(Level.INFO, String.format("TIME IN HEX: "+Hex.encodeHexString(var)));
                         }
                     }
                     /*проверяет, если команда представлена в сценарии в byte[], она извлекаетя из сценария.
