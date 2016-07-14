@@ -57,6 +57,21 @@ public class ExecutorThread {
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
                 logger.log(Level.INFO, String.format("Executing time: %s ms", System.currentTimeMillis() - initTime));
+                while (outputMessages.size() > 0)
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                stack.interrupt();
+
+                try {
+                    stack.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 System.exit(0);
                 break;
             }
@@ -149,8 +164,6 @@ public class ExecutorThread {
                 }
             }
         }
-
-        stack.interrupt();
         setBusy(false);
         try {
             clientSocket.close();

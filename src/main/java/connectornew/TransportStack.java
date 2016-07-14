@@ -106,16 +106,17 @@ public class TransportStack extends Thread {
     }
 
     public static void write(Socket s, byte[] message) throws IOException {
-//        try {
-//            Thread.currentThread().sleep(150);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            Thread.currentThread().sleep(150);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         OutputStream toClient = s.getOutputStream();
         toClient.write(message);
         toClient.flush();
         s.setSoLinger(true, 0);
+        logger.log(Level.INFO,"MESSAGE SENT");
     }
 
     private static long convertByteArraySize4ToLong(byte[] variable) {
