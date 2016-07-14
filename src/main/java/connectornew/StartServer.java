@@ -3,6 +3,8 @@ package connectornew;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,25 +13,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
  * Created by srg on 04.07.16.
  */
 public class StartServer {
-    private Logger logger = Logger.getLogger(StartServer.class.getClass().getName());
+    private Logger logger;
     private Map<String, Object> scenario;
     private Map<String, ClientDescriptor> clients = new ConcurrentHashMap<String, ClientDescriptor>();
     private List<ExecutorThread> threadsPool = new ArrayList<ExecutorThread>();
     private boolean isStopped = false;
+
+    public StartServer() {
+        try {
+            LogManager lg = LogManager.getLogManager();
+            lg.readConfiguration(new FileInputStream(new File(".").getCanonicalFile()+"/logging.properties"));
+            logger = Logger.getLogger("server");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     //methods
     public static void main(String[] args) {
         StartServer ss = new StartServer();
         ss.doLabel();
         // загрузка сценария
-        //        ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
-        ss.loadScenarioFile("/home/user/tmp/scenarios_short1.xml");
+//        ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
+         ss.loadScenarioFile("/home/user/tmp/scenarios_short1.xml");
         //установка количества исполнительных потоков
         ss.createExecutorsPool(1);
         ss.getClients().put("client", new ClientDescriptor());
@@ -66,7 +79,7 @@ public class StartServer {
         try {
             ServerSocket ss = new ServerSocket(42027);
             while (!isStopped) {
-                logger.log(Level.INFO,"Waiting...");
+                logger.log(Level.CONFIG,"Waiting...");
                 Socket s = ss.accept();
                 s.setSendBufferSize(4096);
                 for (ExecutorThread e : threadsPool) {

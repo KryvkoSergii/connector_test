@@ -2,11 +2,15 @@ package connectornew;
 
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
@@ -15,7 +19,20 @@ import java.util.logging.Logger;
 public class ExecutorThread {
     private boolean isBusy;
     //    private Logger logger = Logger.getLogger(ExecutorThread.class.getClass().getName());
-    private Logger logger = Logger.getAnonymousLogger();
+    private Logger logger;
+    //    LogManager.getLogManager().readConfiguration(<ваш класс>.class.getResourceAsStream("logging.properties"));
+
+    public ExecutorThread() {
+        try {
+            URL location = Thread.class.getProtectionDomain().getCodeSource().getLocation();
+
+
+            LogManager.getLogManager().readConfiguration(new FileInputStream(new File("./").getPath()+"/logging.properties"));
+            logger = LogManager.getLogManager().getLogger("Executor");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public boolean isBusy() {
         return isBusy;
@@ -26,16 +43,15 @@ public class ExecutorThread {
     }
 
     public void process(Socket clientSocket, Map<String, Object> scenario, Map<String, ClientDescriptor> clients) {
-        logger.log(Level.INFO, String.format("Thread started "));
-        logger.setLevel(Level.INFO);
+        logger.log(Level.FINE, String.format("Thread started "));
         int port = -1;
         String address = null;
         long initTime;
 
         address = clientSocket.getInetAddress().toString();
         port = clientSocket.getPort();
-        logger.log(Level.INFO, String.format("Defined address %s:%s", address, port));
-        logger.log(Level.INFO, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
+        logger.log(Level.FINEST, String.format("Defined address %s:%s", address, port));
+        logger.log(Level.FINE, String.format("Accepted %s", clientSocket.getRemoteSocketAddress()));
 
         TransportStack stack = new TransportStack(clientSocket);
         Queue<byte[]> inputMessages = stack.getInputMessages();
@@ -46,13 +62,13 @@ public class ExecutorThread {
         byte[] inputMessage = null;
         while (isBusy()) {
             //разделитель сообщений
-            if (logger.getLevel().intValue() >= Level.INFO.intValue()) System.out.println("");
+            if (logger.getLevel().intValue() >= Level.ALL.intValue()) System.out.println("");
             //получение сообщений, в том числе и HEARD_BEAT
 
             ClientDescriptor clientDescriptor = clients.get("client");
             long initTimeLoadCommand = System.nanoTime();
             ScenarioPairContainer spc = getCommand(scenario, clientDescriptor.getClientState(), 0);
-            logger.log(Level.INFO, String.format("Scenario accessing time: %f ms", (double) ((System.nanoTime() - initTimeLoadCommand) * 0.000001)));
+            logger.log(Level.FINER, String.format("Scenario accessing time: %f ms", (double) ((System.nanoTime() - initTimeLoadCommand) * 0.000001)));
 
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
