@@ -46,6 +46,14 @@ public class StartServer {
         this.clients = clients;
     }
 
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
     private void test() {
         //
         ExecutorThread et = threadsPool.get(0);
@@ -58,7 +66,7 @@ public class StartServer {
         try {
             ServerSocket ss = new ServerSocket(42027);
             while (!isStopped) {
-                System.out.println("Waiting...");
+                logger.log(Level.INFO,"Waiting...");
                 Socket s = ss.accept();
                 s.setSendBufferSize(4096);
                 for (ExecutorThread e : threadsPool) {

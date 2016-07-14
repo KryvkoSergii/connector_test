@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 /**
  * Created by srg on 06.07.16.
  */
+@Deprecated
 public class Transport {
     private static Logger logger = Logger.getLogger(Transport.class.getClass().getName());
 
