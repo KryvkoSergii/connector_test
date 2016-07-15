@@ -36,6 +36,7 @@ public class StartServer {
         ss.getClients().put("client", new ClientDescriptor());
         ss.startListening();
 //        ss.test();
+
     }
 
     //getter and setters
