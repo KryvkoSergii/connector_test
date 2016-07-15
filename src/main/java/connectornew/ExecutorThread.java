@@ -66,16 +66,18 @@ public class ExecutorThread {
                     }
                 }
 
-                stack.interrupt();
+//                stack.interrupt();
                 logger.log(Level.INFO, String.format("Done read cycles %s, write cycles %s", stack.getReadCount(), stack.getWriteCount()));
 
+                /**
+                 * на stack не отправлена команда interrupt
+                 */
                 try {
                     stack.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-                System.exit(0);
+//                System.exit(0);
                 break;
             }
 
