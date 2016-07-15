@@ -57,14 +57,17 @@ public class ExecutorThread {
             if (spc == null) {
                 logger.log(Level.INFO, "Scenario executed");
                 logger.log(Level.INFO, String.format("Executing time: %s ms", System.currentTimeMillis() - initTime));
-                while (outputMessages.size() > 0)
+
+                while (outputMessages.size() > 0) {
                     try {
-                        Thread.sleep(1000);
+                        Thread.currentThread().sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
 
                 stack.interrupt();
+                logger.log(Level.INFO, String.format("Done read cycles %s, write cycles %s", stack.getReadCount(), stack.getWriteCount()));
 
                 try {
                     stack.join();
@@ -88,16 +91,6 @@ public class ExecutorThread {
                         inputMessage = inputMessages.poll();
                     }
                     logger.log(Level.INFO, String.format("Reading time from buffer: %f ms", (double) ((System.nanoTime() - startRead) * 0.000001)));
-//                    if (inputMessage == null) {
-//                        try {
-//                            long startRead = System.nanoTime();
-//                            inputMessage =
-//                            logger.log(Level.INFO, String.format("Reading time from socket: %f ms", (double) ((System.nanoTime() - startRead) * 0.000001)));
-//                        } catch (IOException e) {
-//                            logger.log(Level.SEVERE, "GET: " + e.getMessage());
-//                            break;
-//                        }
-//                    }
                     logger.log(Level.INFO, String.format("GET: Input message in hex: %s", Hex.encodeHexString(inputMessage)));
                     if (spc.getCommand() instanceof String) {
                         //извлекаются переменные из "компилированного" сценария

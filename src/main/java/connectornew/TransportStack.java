@@ -16,6 +16,8 @@ import java.util.logging.Logger;
  * Created by srg on 14.07.16.
  */
 public class TransportStack extends Thread {
+    static int readCount = 0;
+    static int writeCount = 0;
     private static Logger logger = Logger.getLogger(TransportStack.class.getClass().getName());
     private final byte[] HEART_BEAT_REQUEST = ClientDescriptor.hexStringToByteArray("000000040000000500000001");
     private final byte[] HEART_BEAT_RESPONSE = ClientDescriptor.hexStringToByteArray("000000040000000600000001");
@@ -29,25 +31,6 @@ public class TransportStack extends Thread {
         this.clientSocket = s;
 //        logger.setLevel(Level.INFO);
     }
-
-
-    //Getters and setters
-    public Queue<byte[]> getInputMessages() {
-        return inputMessages;
-    }
-
-    public void setInputMessages(Queue<byte[]> inputMessages) {
-        this.inputMessages = inputMessages;
-    }
-
-    public Queue<byte[]> getOutputMessages() {
-        return outputMessages;
-    }
-
-    public void setOutputMessages(Queue<byte[]> outputMessages) {
-        this.outputMessages = outputMessages;
-    }
-
 
     //Methods
     public static byte[] read(Socket s, boolean shouldWaiting) throws IOException {
@@ -102,21 +85,17 @@ public class TransportStack extends Thread {
             counter++;
         }
         s.setSoLinger(true, 0);
+        readCount++;
         return resultMessage;
     }
 
     public static void write(Socket s, byte[] message) throws IOException {
-        try {
-            Thread.currentThread().sleep(150);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         OutputStream toClient = s.getOutputStream();
         toClient.write(message);
         toClient.flush();
         s.setSoLinger(true, 0);
-        logger.log(Level.INFO,"MESSAGE SENT");
+        writeCount++;
+//        logger.log(Level.INFO, "MESSAGE SENT");
     }
 
     private static long convertByteArraySize4ToLong(byte[] variable) {
@@ -127,10 +106,34 @@ public class TransportStack extends Thread {
         return value;
     }
 
+    //Getters and setters
+    public Queue<byte[]> getInputMessages() {
+        return inputMessages;
+    }
+
+    public void setInputMessages(Queue<byte[]> inputMessages) {
+        this.inputMessages = inputMessages;
+    }
+
+    public Queue<byte[]> getOutputMessages() {
+        return outputMessages;
+    }
+
+    public void setOutputMessages(Queue<byte[]> outputMessages) {
+        this.outputMessages = outputMessages;
+    }
+
+    public int getReadCount() {
+        return readCount;
+    }
+
+    public int getWriteCount() {
+        return writeCount;
+    }
 
     @Override
     public void run() {
-        logger.log(Level.INFO,"Start transport stack thread");
+        logger.log(Level.INFO, "Start transport stack thread");
         super.run();
         byte[] inputMessage;
         byte[] outputMessage;
@@ -151,13 +154,19 @@ public class TransportStack extends Thread {
 
                 if (inputMessage != null) {
                     inputMessages.add(inputMessage);
-                    logger.log(Level.INFO, String.format("PUT MESSAGE "+ Hex.encodeHexString(inputMessage)));
+                    logger.log(Level.INFO, String.format("READ MESSAGE FROM NET: " + Hex.encodeHexString(inputMessage)));
                 }
 
                 outputMessage = outputMessages.poll();
-                if (outputMessage!=null){
-                    write(clientSocket,outputMessage);
-//                    logger.log(Level.INFO, String.format("SENT MESSAGE"));
+                if (outputMessage != null) {
+                    write(clientSocket, outputMessage);
+                    logger.log(Level.INFO, String.format("WROTE MESSAGE TO NET: " + Hex.encodeHexString(outputMessage)));
+
+                    try {
+                        Thread.currentThread().sleep(500);
+                    } catch (InterruptedException e) {
+                        return;
+                    }
                 }
 
             } catch (IOException e) {
