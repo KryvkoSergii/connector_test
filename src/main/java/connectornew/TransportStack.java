@@ -162,11 +162,11 @@ public class TransportStack extends Thread {
                     write(clientSocket, outputMessage);
                     logger.log(Level.INFO, String.format("WROTE MESSAGE TO NET: " + Hex.encodeHexString(outputMessage)));
 
-                    try {
-                        Thread.currentThread().sleep(500);
-                    } catch (InterruptedException e) {
-                        return;
-                    }
+//                    try {
+//                        Thread.currentThread().sleep(500);
+//                    } catch (InterruptedException e) {
+//                        return;
+//                    }
                 }
 
             } catch (IOException e) {

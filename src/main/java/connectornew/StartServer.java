@@ -14,12 +14,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * It is branch 2
  * Created by srg on 04.07.16.
  */
 public class StartServer {
     private Logger logger = Logger.getLogger(StartServer.class.getClass().getName());
-    private Map<String, Object> scenario;
+    private Map<String, Object> scenarioInitiateConnection;
     private Map<String, ClientDescriptor> clients = new ConcurrentHashMap<String, ClientDescriptor>();
     private List<ExecutorThread> threadsPool = new ArrayList<ExecutorThread>();
     private boolean isStopped = false;
@@ -60,8 +59,8 @@ public class StartServer {
     private void test() {
         //
         ExecutorThread et = threadsPool.get(0);
-        et.process(null, scenario, clients);
-        et.process(null, scenario, clients);
+        et.process(null, scenarioInitiateConnection, clients);
+        et.process(null, scenarioInitiateConnection, clients);
     }
 
     private void startListening() {
@@ -75,7 +74,7 @@ public class StartServer {
                 for (ExecutorThread e : threadsPool) {
                     if (!e.isBusy()) {
                         e.setBusy(true);
-                        e.process(s, scenario, clients);
+                        e.process(s, scenarioInitiateConnection, clients);
                         break;
                     }
                 }
@@ -93,10 +92,10 @@ public class StartServer {
     private void loadScenarioFile(String scenarioFilePath) {
         try {
             long initTime = System.currentTimeMillis();
-            logger.log(Level.INFO, String.format("Loading scenario from file: %s", scenarioFilePath));
+            logger.log(Level.INFO, String.format("Loading scenarioInitiateConnection from file: %s", scenarioFilePath));
             Map<String, Object> tmp = ClientDescriptor.parseScenarioContainer(scenarioFilePath);
             tmp = ClientDescriptor.preCompile(tmp);
-            this.scenario = tmp;
+            this.scenarioInitiateConnection = tmp;
             logger.log(Level.INFO,String.format("Script preparing time: %s ms",System.currentTimeMillis()-initTime));
         } catch (ParserConfigurationException e) {
             logger.log(Level.SEVERE, e.getMessage());
