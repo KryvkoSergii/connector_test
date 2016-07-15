@@ -29,7 +29,8 @@ public class StartServer {
         ss.doLabel();
         // загрузка сценария
         //ss.loadScenarioFile("/home/srg/java/Idea-WorkSpaces/AgentScripting_Andrey/connector_test/src/main/resources/scenarios_short1.xml");
-        ss.loadScenarioFile("/home/user/tmp/scenarios_short1.xml");
+        if (args.length>0 && args[0] != null && !args[0].isEmpty()) ss.loadScenarioFile(args[0].toString());
+        else ss.loadScenarioFile("/home/user/tmp/scenarios_short1.xml");
         //установка количества исполнительных потоков
         ss.createExecutorsPool(1);
         ss.getClients().put("client", new ClientDescriptor());
