@@ -85,7 +85,7 @@ public class TransportStack extends Thread {
             counter++;
         }
         s.setSoLinger(true, 0);
-        readCount++;
+
         return resultMessage;
     }
 
@@ -94,7 +94,7 @@ public class TransportStack extends Thread {
         toClient.write(message);
         toClient.flush();
         s.setSoLinger(true, 0);
-        writeCount++;
+
 //        logger.log(Level.INFO, "MESSAGE SENT");
     }
 
@@ -154,6 +154,7 @@ public class TransportStack extends Thread {
 
                 if (inputMessage != null) {
                     inputMessages.add(inputMessage);
+                    readCount++;
                     logger.log(Level.INFO, String.format("READ MESSAGE FROM NET: " + Hex.encodeHexString(inputMessage)));
                 }
 
@@ -161,7 +162,7 @@ public class TransportStack extends Thread {
                 if (outputMessage != null) {
                     write(clientSocket, outputMessage);
                     logger.log(Level.INFO, String.format("WROTE MESSAGE TO NET: " + Hex.encodeHexString(outputMessage)));
-
+                    writeCount++;
 //                    try {
 //                        Thread.currentThread().sleep(500);
 //                    } catch (InterruptedException e) {
