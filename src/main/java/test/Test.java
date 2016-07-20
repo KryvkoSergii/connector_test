@@ -34,6 +34,7 @@ public class Test {
     public void execute() {
         try {
             Socket s = new Socket("localhost", 42027);
+            System.out.println(s.toString());
 
             OutputStream os = s.getOutputStream();
             os.write(hexStringToByteArray(messageInString));
